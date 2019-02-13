@@ -1,7 +1,7 @@
 function spawn() {
 	$p = New-Object -TypeName System.Diagnostics.Process
 	$i = $p.StartInfo
-	$i.CreateNoWindow = $true
+	$i.CreateNoWindow = $false
 	$i.UseShellExecute = $false
 	$i.RedirectStandardInput = $true
 	$i.RedirectStandardOutput = $true
@@ -23,6 +23,7 @@ function connect($device, $stdout, $stdin) {
 	$stdout_total = 0
 	$device_total = 0
 	Write-Output "Entering main loop"
+	Write-Output "First write"
 	$device.Write($empty_buffer, 0, $M+1)
 	$io = $false
 	while ($stdout_task -ne $null -and $device_task -ne $null) {
@@ -32,6 +33,7 @@ function connect($device, $stdout, $stdin) {
 				if ($stdout_bytes_read -gt 0) {
 					$stdout_total += $stdout_bytes_read
 					$stdout_buffer[1] = $stdout_bytes_read
+					Write-Output "Second write"
 					$device.Write($stdout_buffer, 0, $M+1)
 					$device.Flush()
 					$stdout_task = $stdout.BeginRead($stdout_buffer, 2, ($M-1), $null, $null)
@@ -47,6 +49,7 @@ function connect($device, $stdout, $stdin) {
 					$device_buffer[1] = $device_buffer[1] -band ($M-1)
 					if ($device_buffer[1] -gt 0) {
 						$device_total += $device_buffer[1]
+						Write-Output "Third write"
 						$stdin.Write($device_buffer, 2, $device_buffer[1])
 						$stdin.Flush()
 					}
@@ -54,6 +57,7 @@ function connect($device, $stdout, $stdin) {
 				} else {
 					$device_task = $null
 				}
+				Write-Output "Fourth write"
 				$device.Write($empty_buffer, 0, $M+1)
 				$io = $true
 			}
